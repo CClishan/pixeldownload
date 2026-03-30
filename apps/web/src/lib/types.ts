@@ -19,10 +19,4 @@ export type QueueItem = {
   selectedTokens: string[];
 };
 
-export type Toast = {
-  id: string;
-  tone: 'info' | 'success' | 'error';
-  message: string;
-};
-
 export type ServiceHealth = HealthResponse | null;

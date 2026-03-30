@@ -1,13 +1,19 @@
+import { Archive, Download, Loader2 } from 'lucide-react';
+import { Switch } from './ui/switch';
 import type { AppSettings } from '../lib/types';
-import { SettingsIcon } from './icons';
 
 type SettingsPanelProps = {
   settings: AppSettings;
   labels: {
     configuration: string;
+    platform: string;
     contentMode: string;
     resultMode: string;
     tiktokMode: string;
+    allPlatforms: string;
+    instagram: string;
+    threads: string;
+    tiktok: string;
     auto: string;
     videoOnly: string;
     imageOnly: string;
@@ -16,12 +22,6 @@ type SettingsPanelProps = {
     preferNoWatermark: string;
     resolveQueue: string;
     downloadZip: string;
-    clearWorkspace: string;
-  };
-  summary: {
-    queueItems: number;
-    readyItems: number;
-    selectedAssets: number;
   };
   canResolve: boolean;
   canZip: boolean;
@@ -30,7 +30,6 @@ type SettingsPanelProps = {
   onChange: (next: Partial<AppSettings>) => void;
   onResolve: () => void;
   onDownloadZip: () => void;
-  onClear: () => void;
 };
 
 const Segmented = <T extends string>({
@@ -42,12 +41,12 @@ const Segmented = <T extends string>({
   options: Array<{ value: T; label: string }>;
   onChange: (value: T) => void;
 }) => (
-  <div className="segmented-control">
+  <div className="toggle-surface">
     {options.map((option) => (
       <button
         type="button"
         key={option.value}
-        className={`segmented-control__option ${value === option.value ? 'is-active' : ''}`}
+        className={value === option.value ? 'toggle-button toggle-button--active' : 'toggle-button'}
         onClick={() => onChange(option.value)}
       >
         {option.label}
@@ -59,30 +58,31 @@ const Segmented = <T extends string>({
 export const SettingsPanel = ({
   settings,
   labels,
-  summary,
   canResolve,
   canZip,
   isResolving,
   isArchiving,
   onChange,
   onResolve,
-  onDownloadZip,
-  onClear
+  onDownloadZip
 }: SettingsPanelProps) => (
   <section className="settings-panel" id="settings-panel">
-    <div className="config-header">
-      <SettingsIcon className="config-header__icon" />
-      <div>
-        <p className="eyebrow">{labels.configuration}</p>
-        <h2>{labels.configuration}</h2>
-      </div>
+    <div className="control-block control-block--tight">
+      <label className="output-format-label">{labels.platform}</label>
+      <Segmented
+        value={settings.platformLock}
+        onChange={(value) => onChange({ platformLock: value })}
+        options={[
+          { value: 'auto', label: labels.allPlatforms },
+          { value: 'instagram', label: labels.instagram },
+          { value: 'threads', label: labels.threads },
+          { value: 'tiktok', label: labels.tiktok }
+        ]}
+      />
     </div>
 
-    <div className="settings-block">
-      <div className="settings-block__head">
-        <span>{labels.contentMode}</span>
-        <strong>{summary.readyItems} READY</strong>
-      </div>
+    <div className="control-block control-block--tight">
+      <label className="output-format-label">{labels.contentMode}</label>
       <Segmented
         value={settings.contentMode}
         onChange={(value) => onChange({ contentMode: value })}
@@ -94,11 +94,8 @@ export const SettingsPanel = ({
       />
     </div>
 
-    <div className="settings-block">
-      <div className="settings-block__head">
-        <span>{labels.resultMode}</span>
-        <strong>{summary.selectedAssets} SELECTED</strong>
-      </div>
+    <div className="control-block control-block--tight">
+      <label className="output-format-label">{labels.resultMode}</label>
       <Segmented
         value={settings.resultMode}
         onChange={(value) => onChange({ resultMode: value })}
@@ -109,31 +106,31 @@ export const SettingsPanel = ({
       />
     </div>
 
-    <div className="settings-block">
-      <div className="settings-block__head">
-        <span>{labels.tiktokMode}</span>
-        <strong>{summary.queueItems} ITEMS</strong>
+    <div className="control-block control-block--tight">
+      <label className="output-format-label">{labels.tiktokMode}</label>
+      <div className="switch-row">
+        <label className="switch-row__label" htmlFor="tiktok-no-watermark">
+          {labels.preferNoWatermark}
+        </label>
+        <Switch
+          id="tiktok-no-watermark"
+          checked={settings.preferNoWatermark}
+          onCheckedChange={(checked) => onChange({ preferNoWatermark: checked })}
+        />
       </div>
-      <button
-        type="button"
-        className={`toggle-row ${settings.preferNoWatermark ? 'is-active' : ''}`}
-        onClick={() => onChange({ preferNoWatermark: !settings.preferNoWatermark })}
-      >
-        <span>{labels.preferNoWatermark}</span>
-        <span className="toggle-row__value">{settings.preferNoWatermark ? 'ON' : 'OFF'}</span>
-      </button>
     </div>
 
-    <div className="action-stack">
-      <button type="button" className="primary-button primary-button--full" onClick={onResolve} disabled={!canResolve || isResolving}>
-        {isResolving ? `${labels.resolveQueue}...` : labels.resolveQueue}
+    <div className="control-section control-section--actions">
+      <div className="settings-action-stack">
+        <button type="button" className="primary-button primary-button--full" onClick={onResolve} disabled={!canResolve || isResolving}>
+          {isResolving ? <Loader2 className="button-icon smooth-spin" strokeWidth={1.8} /> : <Archive className="button-icon" strokeWidth={1.8} />}
+          {isResolving ? `${labels.resolveQueue}...` : labels.resolveQueue}
       </button>
       <button type="button" className="secondary-button secondary-button--full" onClick={onDownloadZip} disabled={!canZip || isArchiving}>
+        <Download className="button-icon" strokeWidth={1.8} />
         {isArchiving ? `${labels.downloadZip}...` : labels.downloadZip}
       </button>
-      <button type="button" className="text-button text-button--center" onClick={onClear} disabled={summary.queueItems === 0}>
-        {labels.clearWorkspace}
-      </button>
+      </div>
     </div>
   </section>
 );

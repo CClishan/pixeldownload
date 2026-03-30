@@ -33,11 +33,11 @@ describe('App', () => {
     const user = userEvent.setup();
     render(<App />);
 
-    const textbox = screen.getByPlaceholderText(/instagram\.com/i);
+    const textbox = screen.getByRole('textbox');
     await user.type(textbox, 'https://www.instagram.com/p/demo/\nhttps://www.instagram.com/p/demo/');
     await user.click(screen.getByRole('button', { name: /添加队列/i }));
 
-    expect(screen.getAllByText('1 ITEMS')).toHaveLength(2);
-    expect(screen.getByRole('heading', { name: /instagram\.com\/p\/demo/i })).toBeInTheDocument();
+    expect(screen.getByText('1 ITEMS')).toBeInTheDocument();
+    expect(screen.getByText('https://www.instagram.com/p/demo/')).toBeInTheDocument();
   });
 });

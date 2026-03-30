@@ -1,15 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { HeaderShell } from './components/HeaderShell';
+import { Settings2 } from 'lucide-react';
+import { toast } from 'sonner';
 import { LinkDropzone } from './components/LinkDropzone';
-import { WorkspaceCards } from './components/WorkspaceCards';
 import { QueueList } from './components/QueueList';
 import { SettingsPanel } from './components/SettingsPanel';
 import { CreditsPanel } from './components/CreditsPanel';
 import { MobileFabBar } from './components/MobileFabBar';
-import { ToastRegion } from './components/ToastRegion';
+import { LocaleSwitch } from './components/LocaleSwitch';
 import { downloadArchive, getHealth, resolveLink } from './lib/api';
 import { copy } from './lib/copy';
-import type { AppSettings, Locale, QueueItem, Toast } from './lib/types';
+import type { AppSettings, Locale, QueueItem } from './lib/types';
 import { buildArchiveName, countReadyItems, countSelectedAssets, extractUrls, resetResolvedItems } from './lib/utils';
 
 const defaultSettings: AppSettings = {
@@ -32,11 +32,10 @@ const App = () => {
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [draft, setDraft] = useState('');
   const [queue, setQueue] = useState<QueueItem[]>([]);
-  const [toasts, setToasts] = useState<Toast[]>([]);
   const [health, setHealth] = useState<Awaited<ReturnType<typeof getHealth>> | null>(null);
   const [isResolving, setIsResolving] = useState(false);
   const [isArchiving, setIsArchiving] = useState(false);
-  const settingsRef = useRef<HTMLElement | null>(null);
+  const settingsRef = useRef<HTMLDivElement | null>(null);
   const queueRef = useRef(queue);
 
   const t = copy[locale];
@@ -47,18 +46,18 @@ const App = () => {
 
   useEffect(() => {
     document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
+    document.body.dataset.language = locale;
   }, [locale]);
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth(null));
   }, []);
 
-  const pushToast = (tone: Toast['tone'], message: string) => {
-    const toast = { id: crypto.randomUUID(), tone, message };
-    setToasts((current) => [...current, toast]);
-    window.setTimeout(() => {
-      setToasts((current) => current.filter((item) => item.id !== toast.id));
-    }, 3200);
+  const pushToast = (tone: 'info' | 'success' | 'error', message: string) => {
+    const notify = tone === 'error' ? toast.error : tone === 'success' ? toast.success : toast.info;
+    notify(message, {
+      duration: 3200
+    });
   };
 
   const addDraftToQueue = () => {
@@ -202,62 +201,83 @@ const App = () => {
     }
   };
 
-  const cards = useMemo(
-    () => [
-      { label: t.supportedSources, body: t.supportedBody, meta: t.supportedMeta },
-      { label: t.publicOnly, body: t.publicBody, meta: t.publicMeta },
-      { label: t.batchReady, body: t.batchBody, meta: t.batchMeta }
-    ],
-    [t]
-  );
-
   const readyItems = countReadyItems(queue);
   const selectedAssets = countSelectedAssets(queue);
   const canResolve = queue.some((item) => item.status === 'pending' || item.status === 'error');
   const canZip = selectedAssets > 0;
 
+  const runtimeCards = useMemo(
+    () => [
+      {
+        label: locale === 'zh' ? '已就绪' : 'Ready',
+        value: readyItems,
+        hint: locale === 'zh' ? '解析完成链接' : 'Resolved links'
+      },
+      {
+        label: locale === 'zh' ? '已选择' : 'Selected',
+        value: selectedAssets,
+        hint: locale === 'zh' ? '准备打包资源' : 'Assets marked for export'
+      },
+      {
+        label: locale === 'zh' ? '队列' : 'Queue',
+        value: queue.length,
+        hint: locale === 'zh' ? '当前工作集' : 'Links in session'
+      }
+    ],
+    [locale, queue.length, readyItems, selectedAssets]
+  );
+
   return (
-    <div className="app-shell">
-      <div className="app-chrome">
-        <HeaderShell
-          locale={locale}
-          onLocaleChange={setLocale}
-          platformLock={settings.platformLock}
-          onPlatformChange={(value) => handleSettingsChange({ platformLock: value })}
-          title={t.title}
-          subtitle={t.subtitle}
-        />
+    <div className="app-frame">
+      <div className="page-shell shell">
+        <header className="page-header">
+          <div className="page-header__brand">
+            <h1 className="page-header__title">PixelDownload</h1>
+          </div>
+          <div className="page-header__controls">
+            <LocaleSwitch value={locale} onChange={setLocale} />
+          </div>
+        </header>
 
-        <main className="family-grid">
-          <section className="workspace-panel">
-            <LinkDropzone
-              compact={queue.length > 0}
-              value={draft}
-              prompt={queue.length > 0 ? t.compactPrompt : t.dropPrompt}
-              hint={queue.length > 0 ? t.compactHint : t.dropHint}
-              addLabel={t.addToQueue}
-              pasteLabel={t.pasteClipboard}
-              onChange={setDraft}
-              onAdd={addDraftToQueue}
-              onPaste={pasteClipboard}
-            />
+        <main className="workspace-layout">
+          <section className="workspace-main">
+            <section className="surface-card workspace-surface">
+              <LinkDropzone
+                compact={queue.length > 0}
+                value={draft}
+                prompt={queue.length > 0 ? t.compactPrompt : t.dropPrompt}
+                hint={queue.length > 0 ? t.compactHint : t.dropHint}
+                addLabel={t.addToQueue}
+                pasteLabel={t.pasteClipboard}
+                onChange={setDraft}
+                onAdd={addDraftToQueue}
+                onPaste={pasteClipboard}
+              />
+            </section>
 
-            <WorkspaceCards cards={cards} />
+            <div className="runtime-summary" aria-label="Runtime summary">
+              {runtimeCards.map((card) => (
+                <article key={card.label} className="runtime-summary__card">
+                  <div className="runtime-summary__row">
+                    <p className="runtime-summary__label">{card.label}</p>
+                    <strong className="runtime-summary__value">{card.value}</strong>
+                  </div>
+                  <p className="runtime-summary__hint">{card.hint}</p>
+                </article>
+              ))}
+            </div>
 
             <QueueList
               items={queue}
-              title={t.queueTitle}
               clearLabel={t.clearWorkspace}
               emptyTitle={t.emptyQueue}
               emptyHint={t.emptyHint}
               detailLabel={t.openDetails}
               hideLabel={t.hideDetails}
-              removeLabel={t.remove}
               downloadLabel={t.directDownload}
               selectedAssetsLabel={t.selectedAssets}
               stateLabels={t.state}
               onClear={() => setQueue([])}
-              onRemove={(id) => setQueue((current) => current.filter((item) => item.id !== id))}
               onToggleExpand={(id) =>
                 setQueue((current) =>
                   current.map((item) =>
@@ -285,62 +305,62 @@ const App = () => {
             />
           </section>
 
-          <aside className="config-panel" ref={settingsRef}>
-            <SettingsPanel
-              settings={settings}
-              labels={{
-                configuration: t.configuration,
-                contentMode: t.contentMode,
-                resultMode: t.resultMode,
-                tiktokMode: t.tiktokMode,
-                auto: t.auto,
-                videoOnly: t.videoOnly,
-                imageOnly: t.imageOnly,
-                singleFiles: t.singleFiles,
-                zipBundle: t.zipBundle,
-                preferNoWatermark: t.preferNoWatermark,
-                resolveQueue: t.resolveQueue,
-                downloadZip: t.downloadZip,
-                clearWorkspace: t.clearWorkspace
-              }}
-              summary={{
-                queueItems: queue.length,
-                readyItems,
-                selectedAssets
-              }}
-              canResolve={canResolve}
-              canZip={canZip}
-              isResolving={isResolving}
-              isArchiving={isArchiving}
-              onChange={handleSettingsChange}
-              onResolve={resolveQueue}
-              onDownloadZip={downloadZip}
-              onClear={() => setQueue([])}
-            />
+          <aside className="workspace-sidebar">
+            <header className="config-header">
+              <h2 className="config-header__title">
+                <Settings2 className="config-header__icon button-icon" strokeWidth={1.8} />
+                CONFIGURATION
+              </h2>
+            </header>
+            <div ref={settingsRef}>
+              <section className="surface-card config-panel">
+                <SettingsPanel
+                  settings={settings}
+                  labels={{
+                    configuration: t.configuration,
+                    platform: locale === 'zh' ? '平台' : 'Platform',
+                    contentMode: t.contentMode,
+                    resultMode: t.resultMode,
+                    tiktokMode: t.tiktokMode,
+                    allPlatforms: locale === 'zh' ? '自动' : 'Auto',
+                    instagram: 'Instagram',
+                    threads: 'Threads',
+                    tiktok: 'TikTok',
+                    auto: t.auto,
+                    videoOnly: t.videoOnly,
+                    imageOnly: t.imageOnly,
+                    singleFiles: t.singleFiles,
+                    zipBundle: t.zipBundle,
+                    preferNoWatermark: t.preferNoWatermark,
+                    resolveQueue: t.resolveQueue,
+                    downloadZip: t.downloadZip
+                  }}
+                  canResolve={canResolve}
+                  canZip={canZip}
+                  isResolving={isResolving}
+                  isArchiving={isArchiving}
+                  onChange={handleSettingsChange}
+                  onResolve={resolveQueue}
+                  onDownloadZip={downloadZip}
+                />
+              </section>
+            </div>
 
-            <CreditsPanel
-              title={t.services}
-              body={t.servicesBody}
-              meta={t.servicesMeta}
-              disclaimer={t.disclaimer}
-              health={health}
-            />
+            <CreditsPanel health={health} locale={locale} />
           </aside>
         </main>
+
+        <MobileFabBar
+          settingsLabel={t.mobileSettings}
+          resolveLabel={t.mobileResolve}
+          zipLabel={t.mobileZip}
+          canResolve={canResolve}
+          canZip={canZip}
+          onOpenSettings={() => settingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+          onResolve={resolveQueue}
+          onDownloadZip={downloadZip}
+        />
       </div>
-
-      <MobileFabBar
-        settingsLabel={t.mobileSettings}
-        resolveLabel={t.mobileResolve}
-        zipLabel={t.mobileZip}
-        canResolve={canResolve}
-        canZip={canZip}
-        onOpenSettings={() => settingsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-        onResolve={resolveQueue}
-        onDownloadZip={downloadZip}
-      />
-
-      <ToastRegion toasts={toasts} />
     </div>
   );
 };

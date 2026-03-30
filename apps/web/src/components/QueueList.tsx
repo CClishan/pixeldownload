@@ -1,111 +1,128 @@
+import { ChevronDown, Download, Layers3 } from 'lucide-react';
 import type { QueueItem } from '../lib/types';
 import { buildFileDownloadUrl } from '../lib/api';
-import { platformLabel, summarizeUrl } from '../lib/utils';
-import { ChevronIcon, DownloadIcon, QueueIcon, TrashIcon } from './icons';
+import { platformLabel } from '../lib/utils';
 
 type QueueListProps = {
   items: QueueItem[];
-  title: string;
   clearLabel: string;
   emptyTitle: string;
   emptyHint: string;
   detailLabel: string;
   hideLabel: string;
-  removeLabel: string;
   downloadLabel: string;
   selectedAssetsLabel: string;
   stateLabels: Record<'pending' | 'resolving' | 'ready' | 'error', string>;
   onClear: () => void;
-  onRemove: (id: string) => void;
   onToggleExpand: (id: string) => void;
   onToggleAsset: (itemId: string, token: string) => void;
 };
 
 const kindLabel = (kind: 'video' | 'image' | 'audio', index: number) => `${kind.toUpperCase()} ${String(index + 1).padStart(2, '0')}`;
 
+const detectContentType = (item: QueueItem) => {
+  const kinds = [...new Set((item.response?.assets ?? []).map((asset) => asset.kind))];
+
+  if (kinds.length === 0) {
+    return 'LINK';
+  }
+  if (kinds.length > 1) {
+    return 'MIXED';
+  }
+  if (kinds[0] === 'image') {
+    return 'IMAGE';
+  }
+  if (kinds[0] === 'video') {
+    return 'VIDEO';
+  }
+  return 'AUDIO';
+};
+
 export const QueueList = ({
   items,
-  title,
   clearLabel,
   emptyTitle,
   emptyHint,
   detailLabel,
   hideLabel,
-  removeLabel,
   downloadLabel,
   selectedAssetsLabel,
   stateLabels,
   onClear,
-  onRemove,
   onToggleExpand,
   onToggleAsset
 }: QueueListProps) => (
-  <section className="queue-list">
-    <div className="queue-list__header">
-      <div>
-        <p className="eyebrow">QUEUE LIST</p>
-        <h2>{title}</h2>
+  <section className="surface-card queue-shell">
+    <div className="queue-header">
+      <div className="queue-header__copy">
+        <div className="queue-header__title-row">
+          <Layers3 className="button-icon" strokeWidth={1.8} />
+          <h2 className="queue-title">Queue</h2>
+        </div>
       </div>
-      <div className="queue-list__controls">
-        <span className="meta-badge">{items.length} ITEMS</span>
-        <button type="button" className="text-button" onClick={onClear} disabled={items.length === 0}>
+      <div className="queue-header__actions">
+        <span className="queue-count-chip">{items.length} ITEMS</span>
+        <button type="button" className="queue-clear-button" onClick={onClear} disabled={items.length === 0}>
           {clearLabel}
         </button>
       </div>
     </div>
 
     {items.length === 0 ? (
-      <div className="queue-empty">
-        <QueueIcon className="queue-empty__icon" />
+      <div className="queue-empty-state">
+        <div className="queue-empty-badge">
+          <div className="queue-empty-icon">
+            <Layers3 className="button-icon" strokeWidth={1.8} />
+          </div>
+        </div>
         <p className="queue-empty__title">{emptyTitle}</p>
         <p className="queue-empty__hint">{emptyHint}</p>
       </div>
     ) : (
       <div className="queue-rows">
-        {items.map((item) => {
+        {items.map((item, index) => {
           const response = item.response;
           const assets = response?.assets ?? [];
-          const thumbnail = response?.thumbnailUrl ?? assets[0]?.previewUrl;
           const itemPlatform = response?.platform ?? 'auto';
           const singleAsset = assets.length === 1 ? assets[0] : undefined;
-          const titleText = response?.title ?? summarizeUrl(item.url);
+          const titleText = `${String(index + 1).padStart(2, '0')} / ${platformLabel(itemPlatform).toUpperCase()} / ${detectContentType(item)}`;
 
           return (
             <article className={`queue-row status-${item.status}`} key={item.id}>
               <div className="queue-row__top">
-                <div className="queue-row__thumb" aria-hidden="true">
-                  {thumbnail ? <img src={thumbnail} alt="" loading="lazy" /> : <span>{platformLabel(itemPlatform).slice(0, 2)}</span>}
-                </div>
-
                 <div className="queue-row__main">
-                  <h3 className="queue-row__title">{titleText}</h3>
-                  <div className="queue-row__meta">
-                    <span>{platformLabel(itemPlatform)}</span>
-                    <span>{summarizeUrl(item.url)}</span>
-                    <span>{assets.length > 0 ? `${assets.length} ASSETS` : 'UNRESOLVED'}</span>
+                  <div className="queue-copy queue-copy--full">
+                    <p className="queue-file-name">{titleText}</p>
+                    <p className="queue-link">{item.url}</p>
+                    {item.error ? <p className="queue-note queue-note--error">{item.error}</p> : null}
                   </div>
-                  {item.error ? <p className="queue-row__error">{item.error}</p> : null}
                 </div>
 
-                <div className="queue-row__side">
-                  <span className={`status-pill status-pill--${item.status}`}>{stateLabels[item.status]}</span>
-                  <div className="queue-row__actions">
+                <div className="queue-actions">
+                  <div className="queue-status-cluster">
+                    <span className={`queue-status-pill queue-status-pill--${item.status}`}>{stateLabels[item.status]}</span>
+                  </div>
+
+                  <div className="queue-action-buttons">
                     {singleAsset ? (
-                      <a className="icon-button" href={buildFileDownloadUrl(singleAsset.downloadToken)}>
-                        <DownloadIcon className="button-icon" />
-                        {downloadLabel}
+                      <a
+                        className="queue-action-button queue-action-button--icon queue-action-button--download"
+                        href={buildFileDownloadUrl(singleAsset.downloadToken)}
+                        aria-label={downloadLabel}
+                      >
+                        <Download className="button-icon" strokeWidth={1.8} />
                       </a>
                     ) : null}
                     {response ? (
-                      <button type="button" className="icon-button" onClick={() => onToggleExpand(item.id)}>
-                        <ChevronIcon className={`button-icon ${item.expanded ? 'is-open' : ''}`} />
-                        {item.expanded ? hideLabel : detailLabel}
+                      <button
+                        type="button"
+                        className="queue-action-button queue-action-button--icon"
+                        onClick={() => onToggleExpand(item.id)}
+                        aria-label={item.expanded ? hideLabel : detailLabel}
+                      >
+                        <ChevronDown className={`button-icon ${item.expanded ? 'is-open' : ''}`} strokeWidth={1.8} />
                       </button>
                     ) : null}
-                    <button type="button" className="icon-button icon-button--ghost" onClick={() => onRemove(item.id)}>
-                      <TrashIcon className="button-icon" />
-                      {removeLabel}
-                    </button>
                   </div>
                 </div>
               </div>
@@ -117,12 +134,12 @@ export const QueueList = ({
                     <strong>{item.selectedTokens.length}</strong>
                   </div>
                   <div className="asset-grid">
-                    {assets.map((asset, index) => {
+                    {assets.map((asset, assetIndex) => {
                       const selected = item.selectedTokens.includes(asset.downloadToken);
                       return (
                         <div className={`asset-chip ${selected ? 'is-selected' : ''}`} key={asset.downloadToken}>
                           <button type="button" className="asset-chip__toggle" onClick={() => onToggleAsset(item.id, asset.downloadToken)}>
-                            {kindLabel(asset.kind, index)}
+                            {kindLabel(asset.kind, assetIndex)}
                           </button>
                           <a className="asset-chip__download" href={buildFileDownloadUrl(asset.downloadToken)}>
                             {downloadLabel}
