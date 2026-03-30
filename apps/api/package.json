@@ -1,0 +1,33 @@
+{
+  "name": "@pixel/api",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsup",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@fastify/cors": "^11.1.0",
+    "@fastify/rate-limit": "^10.3.0",
+    "@pixel/contracts": "0.1.0",
+    "archiver": "^7.0.1",
+    "cheerio": "^1.1.0",
+    "dotenv": "^16.6.1",
+    "fastify": "^5.3.2",
+    "mime-types": "^3.0.1",
+    "undici": "^7.10.0",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/mime-types": "^2.1.4",
+    "@types/node": "^24.0.1",
+    "tsup": "^8.5.0",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}
