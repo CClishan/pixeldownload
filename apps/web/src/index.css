@@ -1245,6 +1245,7 @@ a:focus-visible {
   flex-shrink: 0;
   width: 2.5rem;
   height: 1.5rem;
+  padding: 0;
   border: 1px solid rgb(229 229 229);
   border-radius: 999px;
   background: rgb(235 235 235);
@@ -1263,10 +1264,11 @@ a:focus-visible {
 }
 
 .switch-thumb {
-  display: block;
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
   width: 1.125rem;
   height: 1.125rem;
-  margin: 0.125rem;
   border-radius: 999px;
   background: #ffffff;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.16);
