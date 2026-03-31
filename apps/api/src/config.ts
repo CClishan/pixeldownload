@@ -14,6 +14,7 @@ export const config = {
   port: toNumber(process.env.PORT, 3000),
   allowedOrigins: splitOrigins(process.env.ALLOWED_ORIGINS),
   cobaltApiUrl: process.env.COBALT_API_URL ?? 'http://localhost:9000',
+  cobaltRenderApiUrl: process.env.COBALT_RENDER_API_URL,
   cobaltAuthToken: process.env.COBALT_AUTH_TOKEN,
   threadsProviderBaseUrl: process.env.THREADS_PROVIDER_BASE_URL ?? 'https://lovethreads.net',
   tokenTtlMs: toNumber(process.env.TOKEN_TTL_MS, 20 * 60 * 1000)

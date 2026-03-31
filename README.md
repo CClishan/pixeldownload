@@ -47,6 +47,7 @@ HOST=0.0.0.0
 PORT=3000
 ALLOWED_ORIGINS=https://pixeldownload-web.vercel.app
 COBALT_API_URL=https://cobalt.pixloading.com
+COBALT_RENDER_API_URL=https://cobalt-api-3hro.onrender.com
 COBALT_AUTH_TOKEN=
 THREADS_PROVIDER_BASE_URL=https://lovethreads.net
 TOKEN_TTL_MS=1200000

@@ -9,6 +9,7 @@ import {
   type ResolveRequest,
   type ResolveResponse
 } from '@pixel/contracts';
+import type { CobaltTarget } from './types';
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000').replace(/\/$/, '');
 
@@ -32,12 +33,13 @@ export const getHealth = async (): Promise<HealthResponse> => {
   return healthResponseSchema.parse(await response.json());
 };
 
-export const resolveLink = async (payload: ResolveRequest): Promise<ResolveResponse> => {
+export const resolveLink = async (payload: ResolveRequest, cobaltTarget: CobaltTarget = 'primary'): Promise<ResolveResponse> => {
   const body = resolveRequestSchema.parse(payload);
   const response = await fetch(`${apiBaseUrl}/v1/resolve`, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'X-Cobalt-Target': cobaltTarget
     },
     body: JSON.stringify(body)
   });
@@ -47,6 +49,21 @@ export const resolveLink = async (payload: ResolveRequest): Promise<ResolveRespo
   }
 
   return resolveResponseSchema.parse(await response.json());
+};
+
+export const warmCobalt = async (target: CobaltTarget) => {
+  const response = await fetch(`${apiBaseUrl}/v1/cobalt/warm`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Cobalt-Target': target
+    },
+    body: JSON.stringify({ target })
+  });
+
+  if (!response.ok) {
+    throw new Error(await parseError(response));
+  }
 };
 
 export const downloadArchive = async (payload: ArchiveRequest) => {

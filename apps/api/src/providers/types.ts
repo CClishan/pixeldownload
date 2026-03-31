@@ -16,6 +16,7 @@ export type ProviderResolveInput = {
   platform: Platform;
   contentMode: ContentMode;
   preferNoWatermark: boolean;
+  cobaltTarget?: 'primary' | 'render';
 };
 
 export type ProviderResolveResult = {

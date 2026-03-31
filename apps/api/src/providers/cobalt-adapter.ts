@@ -62,10 +62,12 @@ export class CobaltAdapter implements ProviderAdapter {
 
   constructor(
     private readonly baseUrl: string,
+    private readonly renderBaseUrl?: string,
     private readonly authToken?: string
   ) {}
 
   async resolve(input: ProviderResolveInput): Promise<ProviderResolveResult> {
+    const targetBaseUrl = this.pickBaseUrl(input.cobaltTarget);
     const body = {
       url: input.url,
       downloadMode: 'auto',
@@ -73,7 +75,7 @@ export class CobaltAdapter implements ProviderAdapter {
       tiktokFullAudio: input.preferNoWatermark
     };
 
-    const response = await request(this.baseUrl, {
+    const response = await request(targetBaseUrl, {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -97,7 +99,7 @@ export class CobaltAdapter implements ProviderAdapter {
       );
     }
 
-    const assets = this.normalizeAssets(json, input.platform);
+    const assets = this.normalizeAssets(json, input.platform, targetBaseUrl);
     const filteredAssets = filterByContentMode(assets, input.contentMode);
 
     if (filteredAssets.length === 0) {
@@ -149,7 +151,35 @@ export class CobaltAdapter implements ProviderAdapter {
     return { status: 'ok' };
   }
 
-  private normalizeAssets(payload: CobaltResponse, platform: Platform): ProviderAsset[] {
+  async warm(target: 'primary' | 'render' = 'primary') {
+    const response = await request(this.pickBaseUrl(target), {
+      method: 'GET',
+      headers: {
+        Accept: 'application/json',
+        ...(this.authToken ? { Authorization: `Api-Key ${this.authToken}` } : {})
+      }
+    });
+
+    if (!response.ok) {
+      throw new AppError('provider_error', `Cobalt warmup failed with ${response.status}.`, 502);
+    }
+
+    return response;
+  }
+
+  private pickBaseUrl(target: 'primary' | 'render' = 'primary') {
+    if (target === 'render') {
+      if (!this.renderBaseUrl) {
+        throw new AppError('provider_unavailable', 'Render cobalt is not configured on this API.', 400);
+      }
+
+      return this.renderBaseUrl;
+    }
+
+    return this.baseUrl;
+  }
+
+  private normalizeAssets(payload: CobaltResponse, platform: Platform, baseUrl: string): ProviderAsset[] {
     if (payload.status === 'redirect' || payload.status === 'stream' || payload.status === 'tunnel') {
       if (!payload.url) {
         throw new AppError('provider_error', 'Cobalt returned an empty download URL.', 502);
@@ -175,7 +205,7 @@ export class CobaltAdapter implements ProviderAdapter {
           return {
             kind,
             sourceUrl: entry.url as string,
-            previewUrl: normalizeOptionalHttpUrl(entry.thumb, this.baseUrl),
+            previewUrl: normalizeOptionalHttpUrl(entry.thumb, baseUrl),
             fileNameSuggestion: fileName,
             mimeType: kind === 'image' ? 'image/jpeg' : 'video/mp4'
           };

@@ -24,6 +24,15 @@ export const copy = {
     batchBody: 'API 侧流式打包 ZIP',
     batchMeta: '适合多链接整理下载',
     configuration: 'CONFIGURATION',
+    resolverSource: '解析线路',
+    primaryResolver: '主线路',
+    renderResolver: '备用 Render',
+    warmRender: '唤醒 Render',
+    warmingRender: '唤醒中',
+    resolverHintPrimary: '默认走主机房 Cobalt。',
+    resolverHintRender: 'Instagram / TikTok 改走 Render 上的备用 Cobalt。',
+    renderWarmIdle: '备用解析器会休眠，需要时手动唤醒。',
+    renderWarmReady: '备用解析器已唤醒，可以直接解析。',
     contentMode: '内容模式',
     resultMode: '结果模式',
     tiktokMode: 'TikTok 偏好',
@@ -62,6 +71,10 @@ export const copy = {
       zipReady: 'ZIP 已开始下载。',
       zipEmpty: '至少选择一个已解析资源。',
       clipboardFailed: '无法读取剪贴板，请手动粘贴。'
+      ,
+      renderWarmStarted: '正在唤醒备用 Render，通常需要 20-60 秒。',
+      renderWarmReady: '备用 Render 已就绪。',
+      renderWarmFailed: '备用 Render 唤醒失败。'
     }
   },
   en: {
@@ -87,6 +100,15 @@ export const copy = {
     batchBody: 'Server-side ZIP streaming',
     batchMeta: 'Made for collecting multiple links in one pass',
     configuration: 'CONFIGURATION',
+    resolverSource: 'Resolver Source',
+    primaryResolver: 'Primary',
+    renderResolver: 'Render Backup',
+    warmRender: 'Wake Render',
+    warmingRender: 'Waking',
+    resolverHintPrimary: 'Use the primary Cobalt instance.',
+    resolverHintRender: 'Route Instagram / TikTok through the Render backup Cobalt.',
+    renderWarmIdle: 'The backup resolver can sleep; wake it before use.',
+    renderWarmReady: 'The backup resolver is awake and ready.',
     contentMode: 'Content Mode',
     resultMode: 'Result Mode',
     tiktokMode: 'TikTok Preference',
@@ -124,7 +146,10 @@ export const copy = {
       resolved: (ok: number, fail: number) => `Resolve finished: ${ok} succeeded, ${fail} failed.`,
       zipReady: 'ZIP download has started.',
       zipEmpty: 'Select at least one resolved asset first.',
-      clipboardFailed: 'Clipboard access failed. Paste manually instead.'
+      clipboardFailed: 'Clipboard access failed. Paste manually instead.',
+      renderWarmStarted: 'Waking the Render backup. This usually takes 20-60 seconds.',
+      renderWarmReady: 'The Render backup is ready.',
+      renderWarmFailed: 'Failed to wake the Render backup.'
     }
   }
 } satisfies Record<Locale, Record<string, unknown>>;

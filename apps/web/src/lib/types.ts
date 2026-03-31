@@ -20,3 +20,5 @@ export type QueueItem = {
 };
 
 export type ServiceHealth = HealthResponse | null;
+
+export type CobaltTarget = 'primary' | 'render';

@@ -1134,6 +1134,26 @@ a:focus-visible {
   margin-top: -0.1rem;
 }
 
+.resolver-note,
+.resolver-status-text {
+  margin: 0;
+  color: rgb(140 140 140);
+  font-size: 0.7rem;
+  line-height: 1.45;
+}
+
+.settings-inline-actions {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.settings-inline-button {
+  width: auto;
+  min-width: 8.5rem;
+}
+
 .control-section {
   display: grid;
   gap: 1rem;
@@ -1197,14 +1217,18 @@ a:focus-visible {
 }
 
 .settings-panel > .control-block:first-child .toggle-surface {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-panel > .control-block:nth-child(2) .toggle-surface {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
-.settings-panel > .control-block:not(:first-child) .toggle-surface {
+.settings-panel > .control-block:nth-child(n + 3) .toggle-surface {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.settings-panel > .control-block:nth-child(3) .toggle-surface {
+.settings-panel > .control-block:nth-child(4) .toggle-surface {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
@@ -1812,6 +1836,14 @@ body[data-language='zh'] .credits-panel__detail-label {
 
   .switch-root {
     justify-self: end;
+  }
+
+  .settings-inline-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-inline-button {
+    width: 100%;
   }
 
   .mobile-fab {
