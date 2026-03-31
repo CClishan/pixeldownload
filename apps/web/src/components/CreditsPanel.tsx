@@ -18,7 +18,7 @@ type StatusCopy = {
   providersLabel: string;
 };
 
-const providerLabel = (key: string) => (key === 'cobalt' ? 'COBALT' : key.toUpperCase());
+const providerLabel = (key: string) => key.toUpperCase();
 
 const statusCopy: Record<'zh' | 'en', StatusCopy> = {
   zh: {

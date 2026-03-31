@@ -7,9 +7,9 @@ import { SettingsPanel } from './components/SettingsPanel';
 import { CreditsPanel } from './components/CreditsPanel';
 import { MobileFabBar } from './components/MobileFabBar';
 import { LocaleSwitch } from './components/LocaleSwitch';
-import { downloadArchive, getHealth, resolveLink, warmCobalt } from './lib/api';
+import { downloadArchive, getHealth, resolveLink } from './lib/api';
 import { copy } from './lib/copy';
-import type { AppSettings, CobaltTarget, Locale, QueueItem } from './lib/types';
+import type { AppSettings, Locale, QueueItem } from './lib/types';
 import { buildArchiveName, countReadyItems, countSelectedAssets, extractUrls, resetResolvedItems } from './lib/utils';
 
 const defaultSettings: AppSettings = {
@@ -28,11 +28,6 @@ const createQueueItem = (url: string): QueueItem => ({
 });
 
 const App = () => {
-  const [cobaltTarget, setCobaltTarget] = useState<CobaltTarget>(() => {
-    const stored = window.localStorage.getItem('pixel-cobalt-target');
-    return stored === 'render' ? 'render' : 'primary';
-  });
-  const [renderWarmState, setRenderWarmState] = useState<'idle' | 'warming' | 'ready' | 'error'>('idle');
   const [locale, setLocale] = useState<Locale>('zh');
   const [settings, setSettings] = useState<AppSettings>(defaultSettings);
   const [draft, setDraft] = useState('');
@@ -53,10 +48,6 @@ const App = () => {
     document.documentElement.lang = locale === 'zh' ? 'zh-CN' : 'en';
     document.body.dataset.language = locale;
   }, [locale]);
-
-  useEffect(() => {
-    window.localStorage.setItem('pixel-cobalt-target', cobaltTarget);
-  }, [cobaltTarget]);
 
   useEffect(() => {
     getHealth().then(setHealth).catch(() => setHealth(null));
@@ -132,7 +123,7 @@ const App = () => {
           platform: settings.platformLock,
           contentMode: settings.contentMode,
           preferNoWatermark: settings.preferNoWatermark
-        }, cobaltTarget);
+        });
 
         setQueue((current) =>
           current.map((entry) =>
@@ -197,20 +188,6 @@ const App = () => {
       pushToast('error', error instanceof Error ? error.message : 'ZIP failed');
     } finally {
       setIsArchiving(false);
-    }
-  };
-
-  const warmRender = async () => {
-    setRenderWarmState('warming');
-    pushToast('info', t.toast.renderWarmStarted);
-
-    try {
-      await warmCobalt('render');
-      setRenderWarmState('ready');
-      pushToast('success', t.toast.renderWarmReady);
-    } catch (error) {
-      setRenderWarmState('error');
-      pushToast('error', error instanceof Error ? error.message : t.toast.renderWarmFailed);
     }
   };
 
@@ -340,19 +317,6 @@ const App = () => {
                 <SettingsPanel
                   settings={settings}
                   labels={{
-                    configuration: t.configuration,
-                    resolverSource: t.resolverSource,
-                    primaryResolver: t.primaryResolver,
-                    renderResolver: t.renderResolver,
-                    warmRender: t.warmRender,
-                    warmingRender: t.warmingRender,
-                    resolverHint: cobaltTarget === 'render' ? t.resolverHintRender : t.resolverHintPrimary,
-                    renderWarmStatus:
-                      renderWarmState === 'ready'
-                        ? t.renderWarmReady
-                        : renderWarmState === 'error'
-                          ? t.toast.renderWarmFailed
-                          : t.renderWarmIdle,
                     platform: locale === 'zh' ? '平台' : 'Platform',
                     contentMode: t.contentMode,
                     resultMode: t.resultMode,
@@ -374,11 +338,7 @@ const App = () => {
                   canZip={canZip}
                   isResolving={isResolving}
                   isArchiving={isArchiving}
-                  cobaltTarget={cobaltTarget}
-                  isWarmingRender={renderWarmState === 'warming'}
                   onChange={handleSettingsChange}
-                  onCobaltTargetChange={setCobaltTarget}
-                  onWarmRender={warmRender}
                   onResolve={resolveQueue}
                   onDownloadZip={downloadZip}
                 />

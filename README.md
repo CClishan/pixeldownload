@@ -36,7 +36,6 @@ Current production split:
 
 - Web: Vercel
 - API: `https://api.pixloading.com`
-- Cobalt: `https://cobalt.pixloading.com`
 
 ### API env
 
@@ -46,16 +45,19 @@ Current production split:
 HOST=0.0.0.0
 PORT=3000
 ALLOWED_ORIGINS=https://pixeldownload-web.vercel.app
-COBALT_API_URL=https://cobalt.pixloading.com
-COBALT_RENDER_API_URL=https://cobalt-api-3hro.onrender.com
-COBALT_AUTH_TOKEN=
+YT_DLP_BIN=yt-dlp
+GALLERY_DL_BIN=gallery-dl
+GALLERY_DL_COOKIES_FILE=/opt/pixeldownload/secrets/instagram-cookies.txt
+FFMPEG_BIN=ffmpeg
 THREADS_PROVIDER_BASE_URL=https://lovethreads.net
 TOKEN_TTL_MS=1200000
 ```
 
+`GALLERY_DL_COOKIES_FILE` 是可选项，但现在 Instagram 经常会把公开链接重定向到登录页。要稳定解析 Instagram，建议提供一个 Netscape 格式的 Instagram cookies 文件。
+
 ### API container
 
-The API image is built from `apps/api/Dockerfile` and is intended to run behind Nginx.
+The API image is built from `apps/api/Dockerfile`, bundles `yt-dlp`, `gallery-dl`, and `ffmpeg`, and is intended to run behind Nginx.
 
 ```bash
 docker build --platform linux/amd64 -f apps/api/Dockerfile -t pixloading-api:latest .
@@ -72,9 +74,8 @@ docker run -d \
 Terminate TLS at Nginx and proxy only to local services:
 
 - `api.pixloading.com` -> `127.0.0.1:3000`
-- `cobalt.pixloading.com` -> `127.0.0.1:9000`
 
-Expose only `80/443` publicly. Do not expose `3000/9000`.
+Expose only `80/443` publicly. Do not expose `3000`.
 
 ### Vercel env
 

@@ -8,7 +8,8 @@ const fetchMock = vi.fn(async () =>
     JSON.stringify({
       status: 'ok',
       providers: {
-        cobalt: { status: 'ok' },
+        'gallery-dl': { status: 'ok' },
+        'yt-dlp': { status: 'ok' },
         threads: { status: 'ok' }
       },
       timestamp: new Date().toISOString()
@@ -42,25 +43,16 @@ describe('App', () => {
     expect(screen.getByText('https://www.instagram.com/p/demo/')).toBeInTheDocument();
   });
 
-  it('switches resolver target and warms render backup', async () => {
-    const user = userEvent.setup();
+  it('only renders the remaining settings controls', async () => {
     render(<App />);
 
-    await user.click(screen.getByRole('button', { name: /备用 render|render backup/i }));
-    await user.click(screen.getByRole('button', { name: /唤醒 render|wake render/i }));
-
     await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith(
-        expect.stringContaining('/v1/cobalt/warm'),
-        expect.objectContaining({
-          method: 'POST',
-          headers: expect.objectContaining({
-            'X-Cobalt-Target': 'render'
-          })
-        })
-      );
+      expect(screen.getByText(/平台|platform/i)).toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /备用 render|render backup/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole('button', { name: /唤醒 render|wake render/i })).not.toBeInTheDocument();
     });
 
-    expect(window.localStorage.getItem('pixel-cobalt-target')).toBe('render');
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('/v1/health'));
+    expect(fetchMock.mock.calls).toEqual([[expect.stringContaining('/v1/health')]]);
   });
 });

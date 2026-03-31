@@ -19,9 +19,10 @@ import { AppError, asAppError } from './lib/errors.js';
 import { ensureFileExtension, sanitizeFileName } from './lib/filename.js';
 import { request as httpRequest } from './lib/network.js';
 import { detectPlatform } from './lib/platform.js';
-import { CobaltAdapter } from './providers/cobalt-adapter.js';
+import { GalleryDlAdapter } from './providers/gallery-dl-adapter.js';
 import { ProviderRegistry } from './providers/registry.js';
 import { ThreadsAdapter } from './providers/threads-adapter.js';
+import { YtDlpAdapter } from './providers/yt-dlp-adapter.js';
 import { TokenStore } from './services/token-store.js';
 
 export type AppOptions = {
@@ -31,13 +32,13 @@ export type AppOptions = {
 
 const createRegistry = () =>
   new ProviderRegistry([
-    new CobaltAdapter(config.cobaltApiUrl, config.cobaltRenderApiUrl, config.cobaltAuthToken),
-    new ThreadsAdapter(config.threadsProviderBaseUrl)
+    new GalleryDlAdapter(config.galleryDlBin, config.galleryDlCookiesFile),
+    new ThreadsAdapter(config.threadsProviderBaseUrl),
+    new YtDlpAdapter(config.ytDlpBin, config.ffmpegBin)
   ]);
 
 const buildContentDisposition = (fileName: string) => `attachment; filename="${fileName}"`;
 const kindOrder: AssetKind[] = ['video', 'image', 'audio'];
-const parseCobaltTarget = (value: unknown): 'primary' | 'render' => (value === 'render' ? 'render' : 'primary');
 
 export const createApp = (options: AppOptions = {}) => {
   const app = fastify({
@@ -81,7 +82,6 @@ export const createApp = (options: AppOptions = {}) => {
 
   app.post('/v1/resolve', async (request, reply) => {
     const payload = resolveRequestSchema.parse(request.body);
-    const cobaltTarget = parseCobaltTarget(request.headers['x-cobalt-target']);
     const detectedPlatform = detectPlatform(payload.url);
 
     if (payload.platform !== 'auto' && payload.platform !== detectedPlatform) {
@@ -92,8 +92,7 @@ export const createApp = (options: AppOptions = {}) => {
     const provider = registry.get(platform);
     const result = await provider.resolve({
       ...payload,
-      platform,
-      cobaltTarget
+      platform
     });
 
     const assets = result.assets
@@ -134,21 +133,6 @@ export const createApp = (options: AppOptions = {}) => {
         resolvedAt: new Date().toISOString()
       })
     );
-  });
-
-  app.post('/v1/cobalt/warm', async (request, reply) => {
-    const target = parseCobaltTarget((request.body as { target?: string } | undefined)?.target ?? request.headers['x-cobalt-target']);
-    const cobalt = registry.get('instagram');
-
-    if (!(cobalt instanceof CobaltAdapter)) {
-      throw new AppError('missing_provider', 'Cobalt is not available on this API.', 500);
-    }
-
-    await cobalt.warm(target);
-    reply.send({
-      ok: true,
-      target
-    });
   });
 
   app.get('/v1/file/:token', async (request, reply) => {

@@ -49,4 +49,32 @@ describe('createApp', () => {
     expect(payload.platform).toBe('instagram');
     expect(payload.assets).toHaveLength(1);
   });
+
+  it('reports provider health entries from the registry', async () => {
+    const galleryProvider: ProviderAdapter = {
+      ...provider,
+      name: 'gallery-dl'
+    };
+    const tiktokProvider: ProviderAdapter = {
+      ...provider,
+      name: 'yt-dlp',
+      platforms: ['tiktok']
+    };
+
+    const app = createApp({
+      providerRegistry: new ProviderRegistry([galleryProvider, tiktokProvider]),
+      tokenStore: new TokenStore(60_000)
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/v1/health'
+    });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.json().providers).toMatchObject({
+      'gallery-dl': { status: 'ok' },
+      'yt-dlp': { status: 'ok' }
+    });
+  });
 });

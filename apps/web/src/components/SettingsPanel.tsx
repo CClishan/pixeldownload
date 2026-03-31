@@ -1,18 +1,10 @@
-import { Archive, Download, Loader2, Zap } from 'lucide-react';
+import { Archive, Download, Loader2 } from 'lucide-react';
 import { Switch } from './ui/switch';
-import type { AppSettings, CobaltTarget } from '../lib/types';
+import type { AppSettings } from '../lib/types';
 
 type SettingsPanelProps = {
   settings: AppSettings;
   labels: {
-    configuration: string;
-    resolverSource: string;
-    primaryResolver: string;
-    renderResolver: string;
-    warmRender: string;
-    warmingRender: string;
-    resolverHint: string;
-    renderWarmStatus: string;
     platform: string;
     contentMode: string;
     resultMode: string;
@@ -34,11 +26,7 @@ type SettingsPanelProps = {
   canZip: boolean;
   isResolving: boolean;
   isArchiving: boolean;
-  cobaltTarget: CobaltTarget;
-  isWarmingRender: boolean;
   onChange: (next: Partial<AppSettings>) => void;
-  onCobaltTargetChange: (target: CobaltTarget) => void;
-  onWarmRender: () => void;
   onResolve: () => void;
   onDownloadZip: () => void;
 };
@@ -73,40 +61,11 @@ export const SettingsPanel = ({
   canZip,
   isResolving,
   isArchiving,
-  cobaltTarget,
-  isWarmingRender,
   onChange,
-  onCobaltTargetChange,
-  onWarmRender,
   onResolve,
   onDownloadZip
 }: SettingsPanelProps) => (
   <section className="settings-panel" id="settings-panel">
-    <div className="control-block control-block--tight">
-      <label className="output-format-label">{labels.resolverSource}</label>
-      <Segmented
-        value={cobaltTarget}
-        onChange={onCobaltTargetChange}
-        options={[
-          { value: 'primary', label: labels.primaryResolver },
-          { value: 'render', label: labels.renderResolver }
-        ]}
-      />
-      <p className="resolver-note">{labels.resolverHint}</p>
-      <div className="settings-inline-actions">
-        <button
-          type="button"
-          className="secondary-button settings-inline-button"
-          onClick={onWarmRender}
-          disabled={isWarmingRender}
-        >
-          {isWarmingRender ? <Loader2 className="button-icon smooth-spin" strokeWidth={1.8} /> : <Zap className="button-icon" strokeWidth={1.8} />}
-          {isWarmingRender ? labels.warmingRender : labels.warmRender}
-        </button>
-        <span className="resolver-status-text">{labels.renderWarmStatus}</span>
-      </div>
-    </div>
-
     <div className="control-block control-block--tight">
       <label className="output-format-label">{labels.platform}</label>
       <Segmented
