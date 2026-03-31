@@ -9,3 +9,5 @@ coverage
 npm-debug.log*
 apps/api/.tmp
 .cache
+*.tgz
+*.tar

@@ -1,5 +1,6 @@
-FROM node:24-slim AS base
+FROM cgr.dev/chainguard/node:latest-dev AS base
 WORKDIR /app
+USER root
 
 COPY package.json package-lock.json* ./
 COPY apps/api/package.json ./apps/api/package.json
@@ -10,4 +11,5 @@ COPY . .
 RUN npm run build --workspace @pixel/api
 
 EXPOSE 3000
-CMD ["node", "apps/api/dist/index.js"]
+ENTRYPOINT ["node"]
+CMD ["apps/api/dist/index.js"]
