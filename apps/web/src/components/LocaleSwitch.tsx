@@ -6,18 +6,16 @@ type LocaleSwitchProps = {
 };
 
 export const LocaleSwitch = ({ value, onChange }: LocaleSwitchProps) => (
-  <div className="control-shell page-header__locale" aria-label="Locale switch">
-    <div className="control-pill-group control-pill-group--locale">
-      {(['zh', 'en'] as const).map((option) => (
-        <button
-          key={option}
-          type="button"
-          className={`control-pill ${value === option ? 'is-active' : ''}`}
-          onClick={() => onChange(option)}
-        >
-          {option === 'zh' ? '中文' : 'EN'}
-        </button>
-      ))}
-    </div>
+  <div className="page-header__locale" aria-label="Locale switch">
+    {(['zh', 'en'] as const).map((option) => (
+      <button
+        key={option}
+        type="button"
+        className={value === option ? 'page-header__locale-button page-header__locale-button--active' : 'page-header__locale-button'}
+        onClick={() => onChange(option)}
+      >
+        {option === 'zh' ? '中文' : 'EN'}
+      </button>
+    ))}
   </div>
 );

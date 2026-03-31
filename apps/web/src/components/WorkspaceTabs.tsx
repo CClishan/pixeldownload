@@ -9,13 +9,13 @@ type WorkspaceTabsProps = {
 const options: RequestedPlatform[] = ['auto', 'instagram', 'threads', 'tiktok'];
 
 export const WorkspaceTabs = ({ value, onChange }: WorkspaceTabsProps) => (
-  <div className="control-shell" aria-label="Platform selector">
-    <div className="control-pill-group">
+  <div className="page-header__tabs tabs-shell" aria-label="Platform selector">
+    <div className="tabs-strip">
       {options.map((option) => (
         <button
           key={option}
           type="button"
-          className={`control-pill ${value === option ? 'is-active' : ''}`}
+          className={value === option ? 'workspace-tab workspace-tab--active' : 'workspace-tab'}
           onClick={() => onChange(option)}
         >
           {platformLabel(option)}

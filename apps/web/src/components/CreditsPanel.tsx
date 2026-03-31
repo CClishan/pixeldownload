@@ -1,5 +1,4 @@
 import type { HealthResponse } from '@pixel/contracts';
-import { getApiBaseUrl } from '../lib/api';
 
 type CreditsPanelProps = {
   health: HealthResponse | null;
@@ -16,7 +15,6 @@ type StatusCopy = {
   checkingDescription: string;
   okDescription: string;
   degradedDescription: string;
-  apiBaseLabel: string;
   providersLabel: string;
 };
 
@@ -31,7 +29,6 @@ const statusCopy: Record<'zh' | 'en', StatusCopy> = {
     checkingDescription: '前端还在等待健康检查结果。',
     okDescription: '前端已经拿到后端健康检查结果，当前服务可用。',
     degradedDescription: '后端已响应，但至少有一个 provider 处于异常状态。',
-    apiBaseLabel: 'API Base',
     providersLabel: 'Providers'
   },
   en: {
@@ -42,7 +39,6 @@ const statusCopy: Record<'zh' | 'en', StatusCopy> = {
     checkingDescription: 'Waiting for the backend health response.',
     okDescription: 'The frontend connected to the backend health endpoint successfully.',
     degradedDescription: 'The backend responded, but at least one provider is not fully healthy.',
-    apiBaseLabel: 'API Base',
     providersLabel: 'Providers'
   }
 };
@@ -107,10 +103,6 @@ export const CreditsPanel = ({ health, locale }: CreditsPanelProps) => {
       </div>
 
       <div className="credits-panel__details">
-        <div className="credits-panel__detail-block">
-          <p className="credits-panel__detail-label">{copy.apiBaseLabel}</p>
-          <p className="credits-panel__detail-value">{getApiBaseUrl()}</p>
-        </div>
         <div className="credits-panel__detail-block">
           <p className="credits-panel__detail-label">{copy.providersLabel}</p>
           <p className="credits-panel__detail-value">{getProviderSummary(health)}</p>
