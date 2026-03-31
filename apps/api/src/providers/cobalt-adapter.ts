@@ -2,6 +2,7 @@ import type { ContentMode, Platform } from '@pixel/contracts';
 import { AppError } from '../lib/errors.js';
 import { ensureFileExtension, sanitizeFileName } from '../lib/filename.js';
 import { request } from '../lib/network.js';
+import { normalizeOptionalHttpUrl } from '../lib/url.js';
 import type { ProviderAdapter, ProviderAsset, ProviderHealthResult, ProviderResolveInput, ProviderResolveResult } from './types.js';
 
 type CobaltStatus = 'redirect' | 'stream' | 'picker' | 'tunnel' | 'local-processing' | 'error';
@@ -174,7 +175,7 @@ export class CobaltAdapter implements ProviderAdapter {
           return {
             kind,
             sourceUrl: entry.url as string,
-            previewUrl: entry.thumb,
+            previewUrl: normalizeOptionalHttpUrl(entry.thumb, this.baseUrl),
             fileNameSuggestion: fileName,
             mimeType: kind === 'image' ? 'image/jpeg' : 'video/mp4'
           };

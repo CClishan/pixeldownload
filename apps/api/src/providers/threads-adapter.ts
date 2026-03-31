@@ -2,6 +2,7 @@ import { load } from 'cheerio';
 import { AppError } from '../lib/errors.js';
 import { ensureFileExtension } from '../lib/filename.js';
 import { request } from '../lib/network.js';
+import { normalizeOptionalHttpUrl } from '../lib/url.js';
 import type { ProviderAdapter, ProviderAsset, ProviderHealthResult, ProviderResolveInput, ProviderResolveResult } from './types.js';
 
 export class ThreadsAdapter implements ProviderAdapter {
@@ -48,7 +49,7 @@ export class ThreadsAdapter implements ProviderAdapter {
           .find('.photo-option option')
           .toArray()
           .map((option) => {
-            const url = $(option).attr('value');
+            const url = normalizeOptionalHttpUrl($(option).attr('value'), origin);
             const label = $(option).text().trim();
             if (!url || !label.includes('x')) {
               return undefined;
@@ -65,7 +66,7 @@ export class ThreadsAdapter implements ProviderAdapter {
           assets.push({
             kind: 'image',
             sourceUrl: best.url,
-            previewUrl: thumbnail,
+            previewUrl: normalizeOptionalHttpUrl(thumbnail, origin),
             width: best.width,
             height: best.height,
             fileNameSuggestion: ensureFileExtension(`threads-image-${index + 1}`, 'image/jpeg'),
@@ -75,12 +76,12 @@ export class ThreadsAdapter implements ProviderAdapter {
       }
 
       if (item.find('.icon-dlvideo').length > 0) {
-        const url = item.find('a[title="Download Video"]').attr('href');
+        const url = normalizeOptionalHttpUrl(item.find('a[title="Download Video"]').attr('href'), origin);
         if (url) {
           assets.push({
             kind: 'video',
             sourceUrl: url,
-            previewUrl: thumbnail,
+            previewUrl: normalizeOptionalHttpUrl(thumbnail, origin),
             fileNameSuggestion: ensureFileExtension(`threads-video-${index + 1}`, 'video/mp4'),
             mimeType: 'video/mp4'
           });
