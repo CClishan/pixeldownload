@@ -272,19 +272,9 @@ const App = () => {
               clearLabel={t.clearWorkspace}
               emptyTitle={t.emptyQueue}
               emptyHint={t.emptyHint}
-              detailLabel={t.openDetails}
-              hideLabel={t.hideDetails}
-              downloadLabel={t.directDownload}
               selectedAssetsLabel={t.selectedAssets}
               stateLabels={t.state}
               onClear={() => setQueue([])}
-              onToggleExpand={(id) =>
-                setQueue((current) =>
-                  current.map((item) =>
-                    item.id === id ? { ...item, expanded: !item.expanded } : item
-                  )
-                )
-              }
               onToggleAsset={(itemId, token) =>
                 setQueue((current) =>
                   current.map((item) => {

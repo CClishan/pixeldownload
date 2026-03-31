@@ -40,7 +40,8 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: /添加队列/i }));
 
     expect(screen.getByText('1 ITEMS')).toBeInTheDocument();
-    expect(screen.getByText('https://www.instagram.com/p/demo/')).toBeInTheDocument();
+    expect(screen.getByText('LINK')).toBeInTheDocument();
+    expect(screen.queryByText(/www\.instagram\.com\/p\/demo/i)).not.toBeInTheDocument();
   });
 
   it('only renders the remaining settings controls', async () => {
